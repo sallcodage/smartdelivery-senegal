@@ -21,3 +21,8 @@ Thumbs.db
 .DS_Store
 .vscode/
 *.log
+# Fichiers cr‚‚s par erreur dans le terminal
+/curl
+/set
+/taskkill
+/tasklist
