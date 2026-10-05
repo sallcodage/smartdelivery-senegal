@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/* Charte SmartDelivery (prototype) : vert, blanc, tons nuit pour la navigation, gris clair en fond.
+   Teintes ajustées pour l'accessibilité (WCAG 2.1 AA) : tout texte atteint un contraste d'au moins 4,5:1.
+   Ex. blanc sur vert-500 = 4,61:1 (le vert d'origine #16a34a donnait 3,29:1). */
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-vert-50: #ecfbf1;
+  --color-vert-100: #d3f5de;
+  --color-vert-200: #a7eabf;
+  --color-vert-300: #6fd898;
+  --color-vert-400: #34c06c;
+  --color-vert-500: #12873d;
+  --color-vert-600: #0f6f32;
+  --color-vert-700: #0c5a29;
+  --color-vert-800: #0f552b;
+  --color-vert-900: #0c4524;
+
+  /* Bleu marine des pages d'accès (maquette « Connexion SmartDelivery ») */
+  --color-marine-900: #0f2a3d;
+  --color-marine-700: #1d4460;
+  --color-nuit-950: #06110b;
+  --color-nuit-900: #0b1c14;
+  --color-nuit-800: #11281d;
+  --color-nuit-700: #1a3a2a;
+  --color-nuit-600: #27503b;
+
+  --color-fond: #f4f6f5;
+
+  /* Gris de texte assombris : lisibles sur blanc et sur le fond gris clair */
+  --color-slate-400: #617899;
+  --color-slate-500: #5c6c84;
+}
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-fond text-slate-800 antialiased; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-vert-500; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Carte : le marqueur du livreur glisse vers sa nouvelle position au lieu de « sauter » */
+.marqueur-livreur { transition: transform 0.9s linear; }
+.leaflet-zoom-anim .marqueur-livreur { transition: none; }
+.leaflet-popup-content p { margin: 0.2rem 0; }

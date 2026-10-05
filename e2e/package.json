@@ -1,0 +1,16 @@
+{
+  "name": "smartdelivery-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tests de bout en bout de SmartDelivery Sénégal dans un vrai navigateur",
+  "scripts": {
+    "parcours": "node parcours-complet.mjs",
+    "parcours:visible": "node parcours-complet.mjs --visible",
+    "responsive": "node responsive.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "^4.13.0",
+    "puppeteer": "^24.0.0"
+  }
+}

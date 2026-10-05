@@ -1,0 +1,20 @@
+const ROLES = ['CLIENT', 'LIVREUR', 'ADMIN'];
+const VEHICULES = ['MOTO', 'SCOOTER', 'VELO', 'VOITURE'];
+const TYPES_COLIS = ['DOCUMENTS', 'PRODUITS', 'NOURRITURE', 'AUTRES'];
+const STATUTS_COMMANDE = ['NOUVELLE', 'VALIDEE', 'LIVREUR_AFFECTE', 'ACCEPTEE', 'EN_COURS', 'LIVREE', 'CONFIRMEE', 'ANNULEE'];
+
+// Libellés affichés, alignés sur le prototype
+const LIBELLES_STATUT = {
+  NOUVELLE: 'En attente',
+  VALIDEE: 'Validée',
+  LIVREUR_AFFECTE: 'Affectée',
+  ACCEPTEE: 'Acceptée',
+  EN_COURS: 'En cours',
+  LIVREE: 'Livrée',
+  CONFIRMEE: 'Terminée',
+  ANNULEE: 'Annulée',
+};
+
+const STATUTS_LIVRAISON_ACTIVE = ['AFFECTEE', 'ACCEPTEE', 'EN_COURS'];
+
+module.exports = { ROLES, VEHICULES, TYPES_COLIS, STATUTS_COMMANDE, LIBELLES_STATUT, STATUTS_LIVRAISON_ACTIVE };

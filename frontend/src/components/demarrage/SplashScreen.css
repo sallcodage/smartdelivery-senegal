@@ -1,0 +1,135 @@
+/* ─────────────────────────────────────────────────────────────────────
+   Splash Screen SmartDelivery Sénégal
+   Fond vert très clair, logo centré, apparition douce (fondu + léger zoom),
+   chargement discret. Couleurs reprises de la charte (index.css).
+   ───────────────────────────────────────────────────────────────────── */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  padding-top: max(1.5rem, env(safe-area-inset-top));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 50% 42%, #ffffff 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(160deg, #f3fcf6 0%, #e3f7ea 55%, #d3f0dd 100%);
+  opacity: 1;
+  transition: opacity 400ms ease, transform 400ms ease;
+}
+
+/* Sortie : fondu, la page d'arrivée apparaît en dessous */
+.splash--sortie {
+  opacity: 0;
+  transform: scale(1.015);
+  pointer-events: none;
+}
+
+.splash__contenu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Logo : fondu + léger zoom */
+.splash__logo {
+  animation: splash-apparition 750ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.splash__marque {
+  display: block;
+  width: clamp(5.5rem, 24vw, 8.5rem);
+  height: clamp(5.5rem, 24vw, 8.5rem);
+  filter: drop-shadow(0 14px 24px rgba(18, 135, 61, 0.22));
+}
+
+.splash__nom {
+  margin-top: 1.5rem;
+  font-size: clamp(1.9rem, 7vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--color-nuit-900, #0b1c14);
+  animation: splash-montee 600ms ease-out 250ms both;
+}
+
+.splash__nom-accent {
+  color: var(--color-vert-500, #12873d);
+}
+
+.splash__pays {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--color-vert-700, #0c5a29);
+  animation: splash-montee 600ms ease-out 350ms both;
+}
+
+.splash__slogan {
+  margin-top: 1.25rem;
+  font-size: clamp(0.9rem, 3.4vw, 1rem);
+  color: var(--color-slate-500, #5c6c84);
+  animation: splash-montee 600ms ease-out 500ms both;
+}
+
+/* Chargement : trois points qui respirent, très discrets */
+.splash__chargement {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 2.25rem;
+  animation: splash-fondu 500ms ease-out 750ms both;
+}
+
+.splash__chargement span {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: var(--color-vert-500, #12873d);
+  opacity: 0.25;
+  animation: splash-point 1.2s ease-in-out infinite;
+}
+
+.splash__chargement span:nth-child(2) { animation-delay: 0.15s; }
+.splash__chargement span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes splash-apparition {
+  from { opacity: 0; transform: scale(0.88) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes splash-montee {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes splash-fondu {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes splash-point {
+  0%, 100% { opacity: 0.25; transform: scale(0.85); }
+  50%      { opacity: 1;    transform: scale(1); }
+}
+
+/* Respect du réglage système « réduire les animations » */
+@media (prefers-reduced-motion: reduce) {
+  .splash,
+  .splash__logo,
+  .splash__nom,
+  .splash__pays,
+  .splash__slogan,
+  .splash__chargement,
+  .splash__chargement span {
+    animation: none;
+    transition: opacity 200ms linear;
+    transform: none;
+  }
+  .splash__chargement span { opacity: 0.6; }
+}

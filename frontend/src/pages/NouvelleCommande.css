@@ -1,0 +1,321 @@
+.order-page-title {
+  margin: 35px 0 25px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 20px;
+
+  color: #159f71;
+  text-decoration: none;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.order-page-title h2 {
+  margin: 0 0 8px;
+
+  color: #172235;
+  font-size: 27px;
+}
+
+.order-page-title p {
+  margin: 0;
+
+  color: #7c8896;
+  font-size: 14px;
+}
+
+
+.order-form-container {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+
+  gap: 24px;
+  align-items: start;
+}
+
+
+.order-form-card,
+.order-info-card {
+  background: white;
+
+  border: 1px solid #e5ebf0;
+  border-radius: 15px;
+
+  box-shadow: 0 6px 22px rgba(20, 35, 55, 0.04);
+}
+
+
+.order-form-card {
+  padding: 30px;
+}
+
+
+.form-card-header {
+  display: flex;
+  gap: 15px;
+
+  padding-bottom: 24px;
+  margin-bottom: 25px;
+
+  border-bottom: 1px solid #edf0f3;
+}
+
+.form-step {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e8faf3;
+  color: #12a473;
+
+  border-radius: 10px;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.form-card-header h3 {
+  margin: 0 0 6px;
+
+  color: #172235;
+  font-size: 17px;
+}
+
+.form-card-header p {
+  margin: 0;
+
+  color: #83909d;
+  font-size: 13px;
+}
+
+
+.order-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+
+.order-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-field label {
+  margin-bottom: 8px;
+
+  color: #354154;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.order-field input {
+  width: 100%;
+
+  padding: 14px 15px;
+
+  border: 1px solid #dce3e9;
+  border-radius: 9px;
+
+  outline: none;
+
+  color: #263448;
+  background: #fbfcfd;
+
+  font-size: 14px;
+
+  transition: 0.2s ease;
+}
+
+.order-field input:focus {
+  border-color: #18b981;
+
+  background: white;
+
+  box-shadow:
+    0 0 0 3px rgba(24, 185, 129, 0.1);
+}
+
+.order-field span {
+  margin-top: 6px;
+
+  color: #9aa4ae;
+  font-size: 11px;
+}
+
+
+.route-separator {
+  height: 1px;
+
+  background: #eef1f4;
+}
+
+
+.order-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  padding-top: 10px;
+}
+
+
+.cancel-order-button,
+.submit-order-button {
+  padding: 13px 20px;
+
+  border-radius: 9px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cancel-order-button {
+  border: 1px solid #dce2e8;
+
+  color: #596575;
+  background: white;
+
+  text-decoration: none;
+}
+
+.submit-order-button {
+  border: none;
+
+  color: white;
+  background: #18b981;
+
+  cursor: pointer;
+}
+
+.submit-order-button:hover {
+  background: #139d6e;
+}
+
+.submit-order-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+.form-message {
+  padding: 13px 15px;
+
+  margin-bottom: 20px;
+
+  border-radius: 8px;
+
+  font-size: 13px;
+}
+
+.error-message {
+  color: #b42318;
+  background: #fff1f0;
+
+  border: 1px solid #ffd7d4;
+}
+
+.success-message {
+  color: #08784f;
+  background: #eafaf4;
+
+  border: 1px solid #c6efdf;
+}
+
+
+/* INFORMATIONS */
+
+.order-info-card {
+  padding: 27px;
+}
+
+.info-label {
+  color: #14a674;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 1.5px;
+}
+
+.order-info-card > h3 {
+  margin: 8px 0 27px;
+
+  color: #172235;
+  font-size: 19px;
+}
+
+.info-step {
+  display: flex;
+  gap: 13px;
+
+  margin-bottom: 24px;
+}
+
+.info-step strong {
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e9faf4;
+  color: #12a473;
+
+  border-radius: 50%;
+
+  font-size: 11px;
+}
+
+.info-step h4 {
+  margin: 1px 0 5px;
+
+  color: #2b3748;
+  font-size: 13px;
+}
+
+.info-step p {
+  margin: 0;
+
+  color: #87929e;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+@media (max-width: 900px) {
+  .order-form-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+@media (max-width: 600px) {
+  .order-form-card,
+  .order-info-card {
+    padding: 20px;
+  }
+
+  .order-form-actions {
+    flex-direction: column;
+  }
+
+  .cancel-order-button,
+  .submit-order-button {
+    width: 100%;
+    text-align: center;
+  }
+}
