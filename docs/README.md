@@ -14,6 +14,7 @@ Une fiche par phase du projet, à consulter pour préparer les questions du jury
 | [Phases 11 et 12 : notifications et KPI](phase-11-12-notifications-kpi.md) | Matrice des notifications, définitions des indicateurs |
 | [Phase 13 : rapports PDF](phase-13-rapports-pdf.md) | Les trois rapports, KPI figés, sécurité des fichiers |
 | [Phase 14 : assistant IA](phase-14-assistant-ia.md) | Gemini, outils, garde-fou, mode secours, sécurité de la clé |
+| [Déploiement sur Render](deploiement-render.md) | Mise en ligne : base, API, site, variables, limites de l'offre gratuite |
 | [Splash Screen](splash-screen.md) | Écran de démarrage et vérification de session |
 | [Données de démonstration (seed)](seed-demonstration.md) | Commandes, comptes de démo, respect du schéma, réexécution contrôlée |
 | [Phases 15 à 17 : tests et finitions](phase-15-17-tests-finitions.md) | Parcours complet automatisé, audit responsive et accessibilité, bilan des tests |
