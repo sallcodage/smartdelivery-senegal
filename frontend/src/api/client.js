@@ -4,7 +4,16 @@ import { lireJeton, effacerSession } from './session';
 
 export const EVENEMENT_SESSION_EXPIREE = 'smartdelivery:session-expiree';
 
-const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api', timeout: 20000 });
+const BASE_API = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
+
+// 60 s : en production gratuite (Render), l'API endormie met jusqu'à une minute à se réveiller
+const api = axios.create({ baseURL: BASE_API, timeout: 60000 });
+
+// Adresse d'un fichier servi par l'API (« /api/fichiers/... »), valable même si l'API est sur un autre domaine
+export function urlFichier(chemin) {
+  if (!chemin || /^(https?:|blob:|data:)/.test(chemin)) return chemin;
+  return chemin.startsWith('/api') ? BASE_API + chemin.slice(4) : chemin;
+}
 
 api.interceptors.request.use((config) => {
   const jeton = lireJeton();

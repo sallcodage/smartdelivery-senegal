@@ -3,16 +3,15 @@
 ## Architecture en ligne
 
 ```
-Navigateur ──HTTPS──► Site statique « smartdelivery-senegal » (React compilé)
-                         │  règle de réécriture /api/*  (relais transparent)
-                         ▼
-                      Service web « smartdelivery-api » (Node.js / Express)
+Navigateur ──HTTPS──► Site statique « smartdelivery-app » (React compilé)
+    │
+    └──HTTPS (CORS)──► Service web « smartdelivery-senegal » (Node.js / Express)
                          │  adresse interne (même région)
                          ▼
                       PostgreSQL « smartdelivery-db »
 ```
 
-Le site relaie les appels `/api/*` vers l'API. Pour le navigateur, tout vient du **même site** : pas de problème de CORS, les photos s'affichent, et le **HTTPS** permet le GPS des téléphones.
+Le site appelle **directement** l'API (variable `VITE_API_URL`), comme le recommande Render : un relais par réécriture `/api/*` ajoute un intermédiaire qui peut couper les requêtes (« Impossible de joindre le serveur »). L'API n'accepte que l'origine déclarée dans `CORS_ORIGIN`. Le **HTTPS** permet le GPS des téléphones.
 
 ## Limites de l'offre gratuite (documentation Render, octobre 2026)
 
@@ -91,19 +90,26 @@ Variables d'environnement :
 | Build Command | `npm install && npm run build` |
 | Publish Directory | `dist` |
 
-Variables d'environnement : `NODE_VERSION=22`, et `VITE_SIMULATION_GPS=true` (bouton « Simuler le trajet » pour les démonstrations).
+Variables d'environnement :
 
-**Redirects/Rewrites**, dans **cet ordre** :
+| Variable | Valeur |
+|---|---|
+| `NODE_VERSION` | `22` |
+| `VITE_API_URL` | adresse de l'API **suivie de `/api`**, ex. `https://smartdelivery-senegal.onrender.com/api` |
+| `VITE_SIMULATION_GPS` | `true` (bouton « Simuler le trajet » pour les démonstrations) |
+
+Les variables `VITE_*` sont intégrées **à la compilation** : après toute modification, lancer **Manual Deploy → Clear build cache & deploy**.
+
+**Redirects/Rewrites** :
 
 | Source | Destination | Action |
 |---|---|---|
-| `/api/*` | `https://smartdelivery-api.onrender.com/api/*` | Rewrite |
 | `/*` | `/index.html` | Rewrite |
 
-La première règle relaie l'API. La seconde permet d'ouvrir directement n'importe quelle page de l'application (routage React).
+Une seule règle (pas de règle `/api/*`). Elle permet d'ouvrir directement n'importe quelle page de l'application (routage React).
 
 ### 6. Finaliser
-Reporter l'adresse exacte du site dans `CORS_ORIGIN` et `FRONTEND_URL` de l'API. Render redéploie automatiquement.
+Reporter l'adresse exacte du site dans `CORS_ORIGIN` et `FRONTEND_URL` de l'API (`https://…onrender.com`, sans `/` final ni `/api`). Render redéploie automatiquement.
 
 ### 7. Vérifier
 1. `https://smartdelivery-api.onrender.com/api/sante` affiche `{"statut":"ok","base":"connectée"}`.

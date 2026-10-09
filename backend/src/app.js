@@ -15,7 +15,8 @@ const app = express();
 const proxys = process.env.TRUST_PROXY ?? (config.env === 'production' ? '1' : '0');
 if (Number(proxys) > 0) app.set('trust proxy', Number(proxys));
 
-app.use(helmet());
+// cross-origin : le site (autre domaine en production) peut afficher les photos de profil servies par l'API
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({ origin: config.corsOrigines }));
 app.use(express.json({ limit: '100kb' }));
 if (config.env === 'development') app.use(morgan('dev'));

@@ -1,5 +1,6 @@
 import { CheckCircle2, Info, XCircle, AlertTriangle } from 'lucide-react';
 import { initiales } from '../../utils/format';
+import { urlFichier } from '../../api/client';
 
 export function Carte({ children, className = '', ...props }) {
   return <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`} {...props}>{children}</section>;
@@ -20,7 +21,7 @@ export function Badge({ ton = 'gris', children }) {
 export function Avatar({ utilisateur, taille = 'md' }) {
   const t = { sm: 'h-8 w-8 text-xs', md: 'h-10 w-10 text-sm', lg: 'h-20 w-20 text-2xl' }[taille];
   if (utilisateur?.photoUrl) {
-    return <img src={utilisateur.photoUrl} alt="" className={`${t} shrink-0 rounded-full object-cover ring-2 ring-white`} />;
+    return <img src={urlFichier(utilisateur.photoUrl)} alt="" className={`${t} shrink-0 rounded-full object-cover ring-2 ring-white`} />;
   }
   return (
     <span className={`${t} inline-flex shrink-0 items-center justify-center rounded-full bg-vert-100 font-semibold text-vert-700 ring-2 ring-white`} aria-hidden="true">

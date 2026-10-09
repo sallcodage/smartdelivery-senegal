@@ -10,7 +10,7 @@ module.exports = {
   env,
   port: parseInt(process.env.PORT || '4000', 10),
   jwt: { secret: jwtSecret, expiration: process.env.JWT_EXPIRATION || '8h' },
-  corsOrigines: (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',').map((o) => o.trim()),
+  corsOrigines: (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',').map((o) => o.trim().replace(/\/+$/, '')).filter(Boolean),
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   bcryptCout: Math.max(4, parseInt(process.env.BCRYPT_COUT || '12', 10)),
   // Dossier des fichiers téléversés (photos). Chemin relatif = relatif au dossier backend/.
