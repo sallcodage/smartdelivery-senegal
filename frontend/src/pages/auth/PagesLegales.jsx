@@ -6,7 +6,7 @@ function PageLegale({ titre, sections }) {
   return (
     <main className="min-h-screen bg-fond px-4 py-10">
       <Carte className="mx-auto max-w-3xl p-8">
-        <Link to="/connexion"><Logo /></Link>
+        <Link to="/" aria-label="Retour à la page d'accueil"><Logo /></Link>
         <h1 className="mt-8 text-2xl font-bold text-slate-900">{titre}</h1>
         <p className="mt-1 text-sm text-slate-500">Document de démonstration établi dans le cadre d'un projet académique.</p>
         <div className="mt-6 space-y-5">

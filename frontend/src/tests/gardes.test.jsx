@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { RouteProtegee, RoutePublique } from '../routes/Gardes';
+import { RedirectionAccueil, RouteProtegee, RoutePublique } from '../routes/Gardes';
 
 let session = { utilisateur: null, initialisation: false };
 vi.mock('../context/AuthContext', () => ({ useAuth: () => session }));
@@ -47,5 +47,43 @@ describe('Protection des routes', () => {
     session = { utilisateur: null, initialisation: true };
     render(<Application depart="/admin" />);
     expect(screen.getByRole('status')).toHaveTextContent('Chargement');
+  });
+});
+
+describe('Page d\'accueil publique (« / »)', () => {
+  const Racine = ({ depart = '/' }) => (
+    <MemoryRouter initialEntries={[depart]}>
+      <Routes>
+        <Route path="/" element={<RedirectionAccueil visiteur={<p>Page d'accueil</p>} />} />
+        <Route path="/connexion" element={<p>Page connexion</p>} />
+        <Route path="/client" element={<p>Espace client</p>} />
+        <Route path="/admin" element={<p>Espace admin</p>} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  test('un visiteur non connecté voit la page d\'accueil', () => {
+    session = { utilisateur: null, initialisation: false };
+    render(<Racine />);
+    expect(screen.getByText('Page d\'accueil')).toBeInTheDocument();
+  });
+
+  test.each([['CLIENT', 'Espace client'], ['ADMIN', 'Espace admin']])('un %s connecté est envoyé dans son espace', (role, attendu) => {
+    session = { utilisateur: { role }, initialisation: false };
+    render(<Racine />);
+    expect(screen.getByText(attendu)).toBeInTheDocument();
+  });
+
+  test('sans page d\'accueil fournie, le visiteur est envoyé vers la connexion', () => {
+    session = { utilisateur: null, initialisation: false };
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<RedirectionAccueil />} />
+          <Route path="/connexion" element={<p>Page connexion</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Page connexion')).toBeInTheDocument();
   });
 });

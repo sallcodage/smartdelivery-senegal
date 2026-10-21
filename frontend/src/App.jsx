@@ -5,10 +5,11 @@ import Demarrage from './components/demarrage/Demarrage';
 import { ChargementPage } from './components/ui/Etats';
 import EspaceLayout from './layouts/EspaceLayout';
 import Connexion from './pages/auth/Connexion';
+import AccueilPublic from './pages/public/Accueil';
 import PageIntrouvable from './pages/commun/PageIntrouvable';
 
 // Chargement à la demande : chaque écran (et les bibliothèques lourdes : cartes, graphiques)
-// n'est téléchargé que lorsqu'il est ouvert. La page de connexion reste immédiate.
+// n'est téléchargé que lorsqu'il est ouvert. La page d'accueil et la page de connexion restent immédiates.
 const page = (chargeur) => lazy(chargeur);
 const Inscription = page(() => import('./pages/auth/Inscription'));
 const MotDePasseOublie = page(() => import('./pages/auth/MotDePasseOublie'));
@@ -68,7 +69,7 @@ export default function App() {
     <Demarrage>
       <Suspense fallback={<ChargementPage />}>
         <Routes>
-          <Route path="/" element={<RedirectionAccueil />} />
+          <Route path="/" element={<RedirectionAccueil visiteur={<AccueilPublic />} />} />
           <Route path="/login" element={<Navigate to="/connexion" replace />} />
 
           <Route element={<RoutePublique />}>

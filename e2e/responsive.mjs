@@ -31,7 +31,7 @@ await api(`/commandes/${c.id}/positions`, { methode: 'POST', jeton: jL, corps: {
 const idClient = (await api(`/admin/utilisateurs?recherche=${encodeURIComponent(client.email)}`, { jeton: jA })).donnees[0].id;
 
 const PAGES = {
-  public: ['/connexion', '/inscription', '/inscription?profil=livreur', '/mot-de-passe-oublie', '/conditions'],
+  public: ['/', '/connexion', '/inscription', '/inscription?profil=livreur', '/mot-de-passe-oublie', '/conditions'],
   client: ['/client', '/client/commandes/nouvelle', '/client/commandes', `/client/commandes/${c.id}`, `/client/commandes/${c.id}/suivi`, '/client/assistant', '/client/notifications', '/client/profil'],
   livreur: ['/livreur', '/livreur/livraisons', `/livreur/livraisons/${c.id}`, `/livreur/livraisons/${c.id}/en-cours`, '/livreur/historique', '/livreur/performances', '/livreur/notifications', '/livreur/profil'],
   admin: ['/admin', '/admin/commandes', `/admin/commandes/${c.id}`, '/admin/livraisons', '/admin/utilisateurs', '/admin/livreurs', `/admin/livreurs/${idLivreur}`, '/admin/clients', `/admin/clients/${idClient}`, '/admin/statistiques', '/admin/rapports', '/admin/parametres', '/admin/notifications', '/admin/profil'],

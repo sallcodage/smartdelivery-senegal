@@ -21,8 +21,11 @@ export function RoutePublique() {
   return <Outlet />;
 }
 
-export function RedirectionAccueil() {
+// Racine « / » : un utilisateur connecté va dans son espace ; un visiteur voit la page d'accueil publique
+// (« visiteur ») ou, à défaut, la page de connexion.
+export function RedirectionAccueil({ visiteur = null }) {
   const { utilisateur, initialisation } = useAuth();
   if (initialisation) return <ChargementPage />;
-  return <Navigate to={utilisateur ? cheminAccueil(utilisateur.role) : '/connexion'} replace />;
+  if (utilisateur) return <Navigate to={cheminAccueil(utilisateur.role)} replace />;
+  return visiteur ?? <Navigate to="/connexion" replace />;
 }

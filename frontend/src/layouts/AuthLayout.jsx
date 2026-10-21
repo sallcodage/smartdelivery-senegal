@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { MarqueHorizontale } from '../components/ui/LogoEmbleme';
 import fondConnexion from '../assets/connexion/fond-connexion-1536.webp';
 import fondConnexionMobile from '../assets/connexion/fond-connexion-800.webp';
@@ -106,11 +108,17 @@ export default function AuthLayout({ variante = 'connexion', children }) {
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[20%] hidden h-[9%] bg-gradient-to-b from-[#7bc6fd] to-transparent lg:block" />
         {/* Voile clair en haut seulement : texte bleu marine lisible, livreur et ville intacts */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.72)_0%,rgba(255,255,255,0.45)_30%,rgba(255,255,255,0.14)_48%,rgba(255,255,255,0)_58%)] lg:block" />
+        {/* Mobile : retour à la page d'accueil (sur ordinateur, le logo joue ce rôle) */}
+        <Link to="/" className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3.5 py-2 text-sm font-semibold text-marine-900 shadow-md backdrop-blur lg:hidden">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />Accueil
+        </Link>
         <BordVague />
         <RubanVert />
 
         <div className="absolute inset-x-0 top-0 hidden px-[5.5%] pt-[5vh] lg:block">
-          <MarqueHorizontale compacte={variante !== 'connexion'} />
+          <Link to="/" className="inline-block rounded-xl" aria-label="Retour à la page d'accueil de SmartDelivery Sénégal">
+            <MarqueHorizontale compacte={variante !== 'connexion'} />
+          </Link>
           <p className={`mt-[4.5vh] font-extrabold leading-[1.06] tracking-tight text-marine-900 ${v.titre} [@media(max-height:840px)]:text-[clamp(2rem,3vw,2.6rem)]`}>
             Vos livraisons<br />en toute confiance<br /><span className="text-vert-500">au Sénégal</span>
           </p>

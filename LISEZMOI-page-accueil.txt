@@ -1,0 +1,44 @@
+MISE À JOUR : PAGE D'ACCUEIL PUBLIQUE + LOGO UNIQUE
+====================================================
+
+INSTALLATION
+1. Décompressez ce fichier.
+2. Copiez le dossier « smartdelivery » par-dessus votre projet
+   (Windows : acceptez « Remplacer les fichiers dans la destination »).
+3. Dans un terminal, dans le dossier frontend :
+     npm test          → 30 tests réussis attendus
+     npm run dev       → ouvrir http://localhost:5173/
+4. Si tout est bon :
+     git add .
+     git commit -m "Page d'accueil publique et logo unifié"
+     git push
+   Render redéploie automatiquement le site.
+
+NOUVEAUX FICHIERS
+- frontend/src/pages/public/Accueil.jsx          page d'accueil (navigation, services, suivi,
+                                                 3 étapes, avantages, à propos, pied de page
+                                                 avec le contact smartdeliverysn@gmail.com)
+- frontend/src/components/accueil/ApercuSuivi.jsx illustration du suivi (téléphone)
+- frontend/src/tests/accueil.test.jsx            tests de la page d'accueil
+
+FICHIERS MODIFIÉS (changements limités)
+- frontend/src/App.jsx              « / » affiche la page d'accueil aux visiteurs
+- frontend/src/routes/Gardes.jsx    RedirectionAccueil accepte une page « visiteur » ;
+                                    un utilisateur connecté va toujours dans son espace
+- frontend/src/components/ui/Logo.jsx  un seul logo : l'emblème des pages de connexion
+                                    (pastille blanche sur le menu sombre)
+- frontend/public/favicon.svg       icône d'onglet = même emblème
+- frontend/index.html               couleur de thème bleu marine + description
+- frontend/src/layouts/AuthLayout.jsx  logo cliquable + bouton « Accueil » sur mobile
+- frontend/src/pages/auth/PagesLegales.jsx  le logo ramène à l'accueil
+- frontend/src/tests/gardes.test.jsx   4 tests ajoutés pour la route « / »
+- e2e/responsive.mjs                « / » ajoutée à l'audit responsive
+
+AUCUN changement : backend, base de données, authentification JWT,
+espaces client / livreur / administrateur.
+
+VÉRIFICATIONS FAITES
+- Tests d'interface : 30/30 (23 existants + 7 nouveaux)
+- Parcours complet de bout en bout : 26/26, 0 erreur JavaScript
+- Accessibilité (axe, WCAG 2 AA) de la page d'accueil : 0 défaut à 390, 768 et 1440 px
+- Aucun débordement horizontal sur téléphone
