@@ -14,6 +14,18 @@ const { LIBELLES_STATUT } = require('../../utils/constantes');
 
 const LIBELLES_COLIS = { DOCUMENTS: 'Documents', PRODUITS: 'Produits', NOURRITURE: 'Nourriture', AUTRES: 'Autres' };
 const dateDakar = (d) => (d ? new Date(d).toLocaleString('fr-FR', { timeZone: 'Africa/Dakar', dateStyle: 'short', timeStyle: 'short' }) : null);
+// Règle d'annulation (identique à commandeService : le client annule seulement « En attente »,
+// l'administration jusqu'à l'affectation du livreur ; ensuite la livraison ne peut plus être annulée)
+function regleAnnulation(statut, commandeId) {
+  if (statut === 'NOUVELLE') {
+    return { possible_par_le_client: true, explication: 'Le client peut annuler cette commande lui-même depuis la page de détail de la commande (bouton « Annuler la commande »).', lien: `/client/commandes/${commandeId}` };
+  }
+  if (statut === 'VALIDEE' || statut === 'LIVREUR_AFFECTE') {
+    return { possible_par_le_client: false, explication: "La commande a déjà été validée : le client ne peut plus l'annuler lui-même. Seule l'administration SmartDelivery peut encore l'annuler, sur demande du client." };
+  }
+  if (statut === 'ANNULEE') return { possible_par_le_client: false, explication: 'Cette commande est déjà annulée.' };
+  return { possible_par_le_client: false, explication: "La livraison est déjà prise en charge par le livreur ou terminée : elle ne peut plus être annulée." };
+}
 const minutesDepuis = (d) => Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 60000));
 
 // « cmd-12 », « CMD 000012 », « commande 12 » → « CMD-000012 »
@@ -25,7 +37,7 @@ function normaliserNumero(texte) {
 const DEFINITIONS = [
   {
     nom: 'consulter_commande',
-    description: "Retourne l'état réel d'une commande du client connecté (statut, livreur, historique, suivi GPS en cours). À utiliser pour toute question sur une commande précise.",
+    description: "Retourne l'état réel d'une commande du client connecté (statut, livreur, historique, suivi GPS en cours, possibilité d'annulation). À utiliser pour toute question sur une commande précise, y compris pour savoir si elle peut être annulée.",
     parametres: { type: 'object', properties: { numero: { type: 'string', description: 'Numéro de commande, ex. CMD-000123' } }, required: ['numero'] },
   },
   {
@@ -76,6 +88,7 @@ async function consulterCommande({ numero }, { client }) {
       : null,
     historique: c.historique.map((h) => ({ etape: h.libelle, date: dateDakar(h.dateChangement) })),
     lien_suivi: `/client/commandes/${c.id}/suivi`,
+    annulation: regleAnnulation(c.statut, c.id),
   };
   if (c.statut === 'EN_COURS') {
     const s = await suivi.suivre(c.id, client);

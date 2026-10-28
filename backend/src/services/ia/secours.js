@@ -22,6 +22,7 @@ async function repondreEnSecours(question, contexte) {
   const numero = /CMD[-\s]?\d{1,6}/i.exec(question);
   if (numero) {
     const c = await outils.executer('consulter_commande', { numero: numero[0] }, contexte);
+    if (c.trouve && /annul/i.test(question)) return `${decrireCommande(c)} ${c.annulation.explication}`;
     return c.trouve ? decrireCommande(c) : `Je ne dispose d'aucune information sur la commande ${c.numero || numero[0]} : elle n'existe pas dans votre compte. Vérifiez le numéro dans « Mes commandes ».`;
   }
   if (/(o[uù] (en )?est|suivi|suivre|statut|ma commande|mon colis|livreur|arriv|quand)/i.test(question)) {

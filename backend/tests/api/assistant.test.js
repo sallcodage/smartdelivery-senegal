@@ -350,7 +350,7 @@ describe('Changement de fournisseur via .env (adaptateurs OpenAI et Anthropic)',
 describe('Sécurité de la clé', () => {
   test('aucune clé d\'API écrite dans le code source', () => {
     const fs = require('fs'); const path = require('path');
-    const motifs = [/AIza[0-9A-Za-z_-]{35}/, /sk-[A-Za-z0-9_-]{20,}/, /sk-ant-[A-Za-z0-9_-]{20,}/];
+    const motifs = [/AIza[0-9A-Za-z_-]{35}/, /sk-[A-Za-z0-9_-]{20,}/, /sk-ant-[A-Za-z0-9_-]{20,}/, /gsk_[A-Za-z0-9]{40,}/];
     const parcourir = (dossier) => fs.readdirSync(dossier, { withFileTypes: true }).flatMap((e) => {
       const chemin = path.join(dossier, e.name);
       if (['node_modules', 'dist', 'uploads', 'rapports', 'uploads-temp', 'rapports-temp'].includes(e.name)) return [];
@@ -361,7 +361,8 @@ describe('Sécurité de la clé', () => {
     expect(fichiers.length).toBeGreaterThan(50);
     const fuites = fichiers.filter((f) => motifs.some((m) => m.test(fs.readFileSync(f, 'utf8'))));
     expect(fuites).toEqual([]);
+    // Fins de ligne Windows (CRLF) acceptées
     const gitignore = fs.readFileSync(path.join(racine, '.gitignore'), 'utf8');
-    expect(gitignore).toMatch(/^\.env$/m);
+    expect(gitignore).toMatch(/^\.env\r?$/m);
   });
 });
