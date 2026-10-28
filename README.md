@@ -118,9 +118,10 @@ Puis compléter `backend/.env` :
 | `JWT_EXPIRATION` | Durée de session | `8h` |
 | `CORS_ORIGIN`, `FRONTEND_URL` | Adresse de l'interface | `http://localhost:5173` |
 | `ADMIN_*` | Premier administrateur (étape 5), à effacer ensuite | |
-| `IA_FOURNISSEUR` | `gemini`, `openai`, `anthropic` ou `aucun` | `gemini` |
+| `IA_FOURNISSEUR` | `groq`, `gemini`, `openai`, `anthropic` ou `aucun` | `gemini` |
 | `IA_MODELE` | Modèle d'IA | `gemini-3.5-flash` |
 | `IA_CLE_API` | Clé de l'API d'IA ([Google AI Studio](https://aistudio.google.com/apikey)) | |
+| `IA_RELAIS_FOURNISSEUR`, `IA_RELAIS_MODELE`, `IA_RELAIS_CLE_API` | Fournisseur de relais (facultatif), utilisé si le principal est surchargé ou ne répond pas | |
 | `UPLOADS_DIR`, `RAPPORTS_DIR` | Dossiers des photos et des PDF | `uploads`, `rapports` |
 
 > **Les fichiers `.env` ne doivent jamais être publiés** : ils sont exclus par `.gitignore`. Seuls les fichiers `.env.example` (sans valeurs secrètes) sont versionnés.
@@ -318,7 +319,7 @@ Calculés en SQL sur les données réelles (`backend/src/services/kpiService.js`
 
 L'assistant (Gemini) n'accède aux données qu'au travers de **4 outils exécutés par le backend**, limités au client connecté : consulter une commande, lister ses commandes, estimer un tarif (formule officielle), informations sur le service. Un **garde-fou** rejette toute réponse qui citerait un numéro de commande, un montant ou un délai absent des données réelles ; elle est alors remplacée par une réponse construite depuis la base. Si Gemini est indisponible, l'assistant répond quand même en **mode secours**.
 
-Changer de fournisseur : modifier `IA_FOURNISSEUR`, `IA_MODELE` et `IA_CLE_API` dans `backend/.env`. Détails : [docs/phase-14-assistant-ia.md](docs/phase-14-assistant-ia.md).
+Changer de fournisseur : modifier `IA_FOURNISSEUR`, `IA_MODELE` et `IA_CLE_API` dans `backend/.env`. En cas de surcharge (erreur 503 ou 429), l'appel est retenté une fois, puis le fournisseur de relais est utilisé, et en dernier recours le mode secours. Détails : [docs/phase-14-assistant-ia.md](docs/phase-14-assistant-ia.md).
 
 ## 15. Dépannage
 

@@ -2,6 +2,7 @@
 const ADAPTATEURS = {
   gemini: require('./gemini'),
   openai: require('./openai'),
+  groq: require('./openai'), // API compatible OpenAI
   anthropic: require('./anthropic'),
 };
 

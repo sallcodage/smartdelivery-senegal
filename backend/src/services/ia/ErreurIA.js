@@ -12,6 +12,7 @@ const MESSAGES = {
   BLOQUEE: "Le service d'IA a bloqué cette réponse.",
   REPONSE_VIDE: "Le service d'IA n'a pas renvoyé de réponse.",
   TROP_ETAPES: "Le service d'IA n'a pas abouti à une réponse.",
+  VERIFICATION: "La réponse de l'IA contenait une information non vérifiable.",
 };
 
 class ErreurIA extends Error {

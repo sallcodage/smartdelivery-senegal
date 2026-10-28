@@ -32,7 +32,8 @@ beforeAll(() => {
 afterAll(async () => { global.fetch = fetchOriginal; await h.pool.end(); });
 beforeEach(() => {
   requetesGemini = [];
-  Object.assign(process.env, { IA_FOURNISSEUR: 'gemini', IA_MODELE: 'gemini-3.5-flash', IA_CLE_API: CLE, IA_DELAI_MS: '1500' });
+  Object.assign(process.env, { IA_FOURNISSEUR: 'gemini', IA_MODELE: 'gemini-3.5-flash', IA_CLE_API: CLE, IA_DELAI_MS: '1500', IA_PAUSE_MS: '0' });
+  for (const v of ['IA_RELAIS_FOURNISSEUR', 'IA_RELAIS_MODELE', 'IA_RELAIS_CLE_API']) delete process.env[v];
 });
 
 const demander = (client, question) => h.api().post('/api/assistant/questions').set(h.auth(client)).send({ question });
@@ -94,6 +95,24 @@ describe('Assistant IA (Gemini)', () => {
     expect(res.body.outilsUtilises).toEqual(['consulter_commande']);
     const { rows } = await h.pool.query('SELECT commande_id FROM conversations_ia WHERE id = $1', [res.body.conversation.id]);
     expect(rows[0].commande_id).toBe(commande.id);
+  });
+
+  test('annulation : l\'outil indique si le client peut annuler, l\'IA et le mode secours reprennent la règle', async () => {
+    const { client, commande } = await clientAvecCommandeEnCours();
+    const nouvelle = (await h.api().post('/api/commandes').set(h.auth(client)).send(h.corpsCommande()).expect(201)).body.commande;
+    scenario = (corps, n) => (n === 1
+      ? reponseHttp(200, appelFonction('consulter_commande', { numero: nouvelle.numero }))
+      : reponseHttp(200, texte(`Oui : ${resultatOutil(corps).annulation.explication}`)));
+    const res = await demander(client, `Puis-je annuler ${nouvelle.numero} ?`).expect(201);
+    expect(resultatOutil(requetesGemini[1].corps).annulation).toMatchObject({ possible_par_le_client: true, lien: `/client/commandes/${nouvelle.id}` });
+    expect(res.body.mode).toBe('ia');
+
+    process.env.IA_CLE_API = '';
+    const secours = await demander(client, `Est-ce possible d'annuler ${commande.numero} ?`).expect(201);
+    expect(secours.body.mode).toBe('secours');
+    expect(secours.body.conversation.reponse).toContain('ne peut plus être annulée');
+    const secoursNouvelle = await demander(client, `Je veux annuler ${nouvelle.numero}`).expect(201);
+    expect(secoursNouvelle.body.conversation.reponse).toContain('Annuler la commande');
   });
 
   test('commande d\'un autre client ou inexistante : aucune donnée transmise, l\'assistant dit ne pas savoir', async () => {
@@ -206,6 +225,86 @@ describe('Assistant IA (Gemini)', () => {
     const admin = await h.creerAdmin();
     await demander(admin, 'Bonjour').expect(403);
     await h.api().post('/api/assistant/questions').send({ question: 'Bonjour' }).expect(401);
+  });
+});
+
+describe('Groq, nouvelle tentative et fournisseur de relais', () => {
+  const CLE_RELAIS = 'cle-relais-de-test';
+  // Simule Groq (format OpenAI) devant la simulation Gemini existante
+  function simulerGroq(reponses) {
+    const appels = [];
+    const precedent = global.fetch;
+    global.fetch = jest.fn(async (url, options) => {
+      if (!url.startsWith('https://api.groq.com/openai/v1/')) return precedent(url, options);
+      appels.push({ url, options, corps: JSON.parse(options.body) });
+      const r = reponses[Math.min(appels.length - 1, reponses.length - 1)];
+      return typeof r === 'function' ? r(appels.at(-1).corps) : r;
+    });
+    return { appels, restaurer: () => { global.fetch = precedent; } };
+  }
+  const groq = { IA_FOURNISSEUR: 'groq', IA_MODELE: 'llama-3.3-70b-versatile' };
+
+  test('Groq : adresse compatible OpenAI, clé dans l\'en-tête, appel d\'outil puis réponse', async () => {
+    Object.assign(process.env, groq);
+    const g = simulerGroq([
+      reponseHttp(200, { choices: [{ message: { role: 'assistant', content: null, reasoning: 'interne', tool_calls: [{ id: 'a1', type: 'function', function: { name: 'informations_service', arguments: '{}' } }] } }] }),
+      (corps) => reponseHttp(200, { choices: [{ message: { role: 'assistant', content: `Nous livrons à : ${JSON.parse(corps.messages.at(-1).content).zones_desservies.join(', ')}.` } }] }),
+    ]);
+    const client = await h.inscrireEtConnecterClient();
+    const res = await demander(client, 'Quelles zones desservez-vous ?').expect(201);
+    g.restaurer();
+    expect(g.appels[0].url).toBe('https://api.groq.com/openai/v1/chat/completions');
+    expect(g.appels[0].options.headers.Authorization).toBe(`Bearer ${CLE}`);
+    expect(g.appels[0].corps.model).toBe('llama-3.3-70b-versatile');
+    expect(g.appels[1].corps.messages.at(-2)).toEqual({ role: 'assistant', content: '', tool_calls: expect.any(Array) });
+    expect(res.body).toMatchObject({ mode: 'ia', avertissement: null });
+    expect(res.body.conversation.reponse).toContain('Pikine');
+    const { rows } = await h.pool.query('SELECT fournisseur, modele FROM conversations_ia WHERE id = $1', [res.body.conversation.id]);
+    expect(rows[0]).toEqual({ fournisseur: 'groq', modele: 'llama-3.3-70b-versatile' });
+  });
+
+  test('service surchargé (503) : une nouvelle tentative réussit, sans mode secours', async () => {
+    Object.assign(process.env, groq);
+    const g = simulerGroq([
+      reponseHttp(503, { error: { message: 'over capacity' } }),
+      reponseHttp(200, { choices: [{ message: { role: 'assistant', content: 'Bonjour ! Je suis là pour suivre vos livraisons.' } }] }),
+    ]);
+    const client = await h.inscrireEtConnecterClient();
+    const res = await demander(client, 'Bonjour').expect(201);
+    g.restaurer();
+    expect(g.appels).toHaveLength(2);
+    expect(res.body.mode).toBe('ia');
+  });
+
+  test('principal indisponible deux fois : le relais Gemini répond ; puis tout en échec : mode secours', async () => {
+    Object.assign(process.env, groq, { IA_RELAIS_FOURNISSEUR: 'gemini', IA_RELAIS_MODELE: 'gemini-relais', IA_RELAIS_CLE_API: CLE_RELAIS });
+    scenario = () => reponseHttp(200, texte('Bonjour, réponse du relais.'));
+    const g = simulerGroq([reponseHttp(503, { error: { message: 'over capacity' } })]);
+    const client = await h.inscrireEtConnecterClient();
+    const res = await demander(client, 'Bonjour').expect(201);
+    expect(g.appels).toHaveLength(2); // essai + nouvelle tentative
+    expect(requetesGemini[0].url).toContain('/models/gemini-relais:generateContent');
+    expect(requetesGemini[0].headers['x-goog-api-key']).toBe(CLE_RELAIS);
+    expect(res.body).toMatchObject({ mode: 'ia', avertissement: null });
+    const { rows } = await h.pool.query('SELECT fournisseur, modele FROM conversations_ia WHERE id = $1', [res.body.conversation.id]);
+    expect(rows[0]).toEqual({ fournisseur: 'gemini', modele: 'gemini-relais' });
+
+    scenario = () => reponseHttp(503, { error: { message: 'overloaded' } });
+    const secours = await demander(client, 'Où est ma commande ?').expect(201);
+    g.restaurer();
+    expect(secours.body.mode).toBe('secours');
+    expect(secours.body.conversation.reponse).toContain("Vous n'avez aucune commande en cours");
+  });
+
+  test('clé refusée (401) : pas de nouvelle tentative inutile, passage direct au relais', async () => {
+    Object.assign(process.env, groq, { IA_RELAIS_FOURNISSEUR: 'gemini', IA_RELAIS_CLE_API: CLE_RELAIS });
+    scenario = () => reponseHttp(200, texte('Réponse du relais.'));
+    const g = simulerGroq([reponseHttp(401, { error: { message: 'invalid key' } })]);
+    const client = await h.inscrireEtConnecterClient();
+    const res = await demander(client, 'Bonjour').expect(201);
+    g.restaurer();
+    expect(g.appels).toHaveLength(1);
+    expect(res.body.mode).toBe('ia');
   });
 });
 

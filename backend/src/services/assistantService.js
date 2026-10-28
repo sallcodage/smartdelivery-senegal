@@ -1,11 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────
 //  Assistant SmartDelivery : orchestration.
-//  question → IA (avec outils) → garde-fou → [mode secours] → enregistrement
+//  question → IA principale (avec outils) → garde-fou
+//           → [nouvelle tentative si le service est surchargé] → [IA de relais] → [mode secours]
+//           → enregistrement
 // ─────────────────────────────────────────────────────────────────────
 const { query } = require('../config/db');
 const { camel } = require('../utils/format');
 const { lirePagination, paginer } = require('../utils/pagination');
-const { lireConfiguration } = require('./ia/configuration');
+const { lireConfiguration, lireRelais } = require('./ia/configuration');
 const { adaptateur } = require('./ia/fournisseurs');
 const { ErreurIA } = require('./ia/ErreurIA');
 const outils = require('./ia/outils');
@@ -14,6 +16,9 @@ const { verifierReponse } = require('./ia/verification');
 const { repondreEnSecours } = require('./ia/secours');
 
 const ECHANGES_DE_CONTEXTE = 6; // mémoire de la conversation envoyée à l'IA
+const ERREURS_PASSAGERES = ['INDISPONIBLE', 'QUOTA']; // surcharge : une nouvelle tentative a de bonnes chances d'aboutir
+const pauseAvantNouvelleTentative = () => Number(process.env.IA_PAUSE_MS ?? 1500);
+const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function derniersEchanges(clientId) {
   const { rows } = await query(
@@ -30,34 +35,51 @@ const AVERTISSEMENTS = {
   AUTRE: "L'assistant IA est momentanément indisponible : réponse fournie directement à partir de vos données SmartDelivery.",
 };
 
+// Une question posée à un fournisseur : réponse vérifiée, ou erreur classée (ErreurIA)
+async function demanderA(config, client, question, contexte, historique) {
+  const { texte } = await adaptateur(config.fournisseur).converser({
+    config,
+    systeme: consigneSysteme(client),
+    historique,
+    question,
+    outils: outils.DEFINITIONS,
+    executerOutil: (nom, args) => outils.executer(nom, args, contexte),
+  });
+  const verification = await verifierReponse(texte, contexte);
+  if (!verification.valide) {
+    console.warn(`[Assistant] ${config.fournisseur}/${config.modele} : réponse rejetée par le garde-fou :`, verification.problemes.join(', '));
+    throw new ErreurIA('VERIFICATION');
+  }
+  return texte;
+}
+
 async function poserQuestion(client, question) {
   const config = lireConfiguration();
+  const relais = lireRelais();
   const contexte = { client, traces: [], question };
   let reponse = null;
   let motifSecours = null;
+  let utilise = null; // fournisseur qui a réellement répondu
 
-  if (!config.disponible) {
-    motifSecours = config.raisonIndisponible;
-  } else {
-    try {
-      const { texte } = await adaptateur(config.fournisseur).converser({
-        config,
-        systeme: consigneSysteme(client),
-        historique: await derniersEchanges(client.id),
-        question,
-        outils: outils.DEFINITIONS,
-        executerOutil: (nom, args) => outils.executer(nom, args, contexte),
-      });
-      const verification = await verifierReponse(texte, contexte);
-      if (verification.valide) reponse = texte;
-      else {
-        motifSecours = 'VERIFICATION';
-        console.warn('[Assistant] Réponse rejetée par le garde-fou :', verification.problemes.join(', '));
+  const tentatives = [config, relais].filter((c) => c && c.disponible);
+  if (!tentatives.length) motifSecours = config.raisonIndisponible;
+  else {
+    const historique = await derniersEchanges(client.id);
+    for (const cfg of tentatives) {
+      for (let essai = 1; essai <= 2 && !reponse; essai++) {
+        try {
+          reponse = await demanderA(cfg, client, question, contexte, historique);
+          utilise = cfg;
+        } catch (err) {
+          const code = err instanceof ErreurIA ? err.code : 'INDISPONIBLE';
+          motifSecours = code;
+          // Journal serveur sans la clé ni le contenu de la question
+          if (code !== 'VERIFICATION') console.error(`[Assistant] ${cfg.fournisseur}/${cfg.modele} (essai ${essai}) : ${err.code || err.message}${err.detail ? ` (${err.detail})` : ''}`);
+          if (!ERREURS_PASSAGERES.includes(code)) break; // inutile de réessayer : on passe au relais
+          if (essai === 1) await pause(pauseAvantNouvelleTentative());
+        }
       }
-    } catch (err) {
-      motifSecours = err instanceof ErreurIA ? err.code : 'INDISPONIBLE';
-      // Journal serveur sans la clé ni le contenu de la question
-      console.error(`[Assistant] ${config.fournisseur}/${config.modele} : ${err.code || err.message}${err.detail ? ` (${err.detail})` : ''}`);
+      if (reponse) { motifSecours = null; break; }
     }
   }
 
@@ -68,7 +90,7 @@ async function poserQuestion(client, question) {
     `INSERT INTO conversations_ia (client_id, commande_id, question, reponse, fournisseur, modele)
      VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, question, reponse, date_heure`,
     [client.id, commandeConsultee?.resultat.commande_id || null, question, reponse,
-      motifSecours ? 'secours' : config.fournisseur, motifSecours ? null : config.modele]
+      motifSecours ? 'secours' : utilise.fournisseur, motifSecours ? null : utilise.modele]
   );
 
   return {
