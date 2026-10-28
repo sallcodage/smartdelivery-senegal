@@ -6,7 +6,7 @@
 //   IA_RELAIS_FOURNISSEUR, IA_RELAIS_MODELE, IA_RELAIS_CLE_API
 const FOURNISSEURS = ['groq', 'gemini', 'openai', 'anthropic'];
 const MODELES_PAR_DEFAUT = {
-  groq: 'llama-3.3-70b-versatile',
+  groq: 'openai/gpt-oss-120b',
   gemini: 'gemini-3.5-flash-lite',
   openai: 'gpt-4.1-mini',
   anthropic: 'claude-sonnet-4-5',

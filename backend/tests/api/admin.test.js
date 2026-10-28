@@ -65,6 +65,24 @@ describe('Gestion des utilisateurs (administrateur)', () => {
     expect(res.body.message).toMatch(/Suspendez-le/);
   });
 
+  test('suppression d\'un administrateur : possible sans action, refusée s\'il a agi (traçabilité)', async () => {
+    const adminSansAction = await h.creerAdmin();
+    await h.api().delete(`/api/admin/utilisateurs/${adminSansAction.id}`).set(h.auth(admin)).expect(204);
+
+    const adminActif = await h.creerAdmin();
+    const client = await h.inscrireEtConnecterClient();
+    const c = (await h.api().post('/api/commandes').set(h.auth(client)).send(h.corpsCommande()).expect(201)).body.commande;
+    await h.api().post(`/api/commandes/${c.id}/valider`).set(h.auth(adminActif)).expect(200);
+    const res = await h.api().delete(`/api/admin/utilisateurs/${adminActif.id}`).set(h.auth(admin));
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/Suspendez-le/);
+    // L'auteur de la validation est toujours connu
+    const { rows } = await h.pool.query("SELECT auteur_id FROM historique_statuts WHERE commande_id = $1 AND nouveau_statut = 'VALIDEE'", [c.id]);
+    expect(rows[0].auteur_id).toBe(adminActif.id);
+    // La suspension reste possible
+    await h.api().patch(`/api/admin/utilisateurs/${adminActif.id}/statut`).set(h.auth(admin)).send({ statut: 'INACTIF' }).expect(200);
+  });
+
   test('page Clients : nombre de commandes par client', async () => {
     const client = await h.inscrireEtConnecterClient();
     await h.api().post('/api/commandes').set(h.auth(client)).send(h.corpsCommande()).expect(201);

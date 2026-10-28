@@ -79,9 +79,25 @@ async function changerStatut(id, statut, admin) {
   return profil.obtenir(id);
 }
 
+// Traces laissées par un compte (souvent un administrateur) : auteur d'un changement de statut,
+// d'un rapport ou d'une modification des tarifs. La base les conserverait en effaçant l'auteur
+// (ON DELETE SET NULL) : on refuse donc la suppression pour ne pas perdre « qui a fait quoi ».
+async function aDesActionsTracees(id) {
+  const { rows } = await query(
+    `SELECT EXISTS (SELECT 1 FROM historique_statuts WHERE auteur_id = $1)
+         OR EXISTS (SELECT 1 FROM rapports WHERE administrateur_id = $1)
+         OR EXISTS (SELECT 1 FROM parametres_tarification WHERE modifie_par = $1) AS trace`,
+    [id]
+  );
+  return rows[0].trace;
+}
+
 // Suppression physique uniquement si le compte n'a aucun historique ; sinon, suspension.
 async function supprimer(id, admin) {
   if (id === admin.id) throw conflit('Vous ne pouvez pas supprimer votre propre compte');
+  if (await aDesActionsTracees(id)) {
+    throw conflit("Ce compte a déjà effectué des actions enregistrées dans l'historique (validations, affectations, rapports…). Suspendez-le plutôt que de le supprimer, pour conserver la traçabilité.");
+  }
   try {
     const { rowCount } = await query('DELETE FROM utilisateurs WHERE id = $1', [id]);
     if (!rowCount) throw introuvable('Utilisateur introuvable');
